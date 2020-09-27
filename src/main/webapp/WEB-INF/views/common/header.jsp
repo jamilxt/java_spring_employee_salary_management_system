@@ -249,7 +249,7 @@
                     <small class="badge-info pl-2 pr-2"><sec:authorize access="hasRole('ADMIN')">ADMIN</sec:authorize>
                     <sec:authorize
                             access="hasRole('EMPLOYEE')">EMPLOYEE</sec:authorize> </small><br>
-                        Balance: <b class="text-success">${balance}</b>
+                        Balance: <b class="text-success" id="currentBalance">${balance}</b>
                   </span>
                             <img
                                     class="img-profile rounded-circle"

@@ -1,5 +1,6 @@
 package com.jamilxt.esmpanel.controllers;
 
+import com.jamilxt.esmpanel.model.User;
 import com.jamilxt.esmpanel.request.PaymentRequest;
 import com.jamilxt.esmpanel.request.RechargeBalanceRequest;
 import com.jamilxt.esmpanel.service.BankAccountService;
@@ -31,11 +32,12 @@ public class MoneyTransactionRESTController {
     }
 
     @PostMapping("/pay-employee")
-    public ResponseEntity<?> rechargeMoney(@RequestParam(name = "userId") String userId,
-                                           @RequestParam(name = "amount") long amount) {
+    public ResponseEntity<?> rechargeMoney(@RequestParam(name = "username") String username,
+                                           @RequestParam(name = "amount") String amount) {
         PaymentRequest request = new PaymentRequest();
-
-        request.setMsg(bankAccountService.paySalaryToAUser(userService.findById(Long.parseLong(userId)), amount));
+        User user = userService.findByUsername(username).get();
+        request.setMsg(bankAccountService.paySalaryToAUser(user, Long.parseLong(amount)));
+        request.setCurrentBalance(String.valueOf(bankAccountService.getBankBalanceByUsername("admin")));
         return new ResponseEntity<>(request, HttpStatus.OK);
     }
 

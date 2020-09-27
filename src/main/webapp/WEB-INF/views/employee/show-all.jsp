@@ -51,7 +51,8 @@
                             <td>${ user.salary }</td>
                             <td>
                                 <button class="btn btn-success btn-icon-split" data-toggle="modal"
-                                        data-target="#payModalCenter${ user.id }">
+                                        data-target="#payModalCenter${ user.id }"
+                                        onclick="setValue('${ user.id }', '${user.username}', '${user.salary}')">
                                     <span class="icon text-white-50"><i class="fas fa-dollar-sign"></i></span>
                                     <span class="text">Pay</span>
                                 </button>
@@ -64,7 +65,7 @@
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="payModalCenterTitle">Pay Salary to
-                                                    <b>${user.username}</b></h5>
+                                                        ${user.username}</h5>
                                                 <button type="button" class="close" data-dismiss="modal"
                                                         aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
@@ -75,8 +76,24 @@
                                                         class="small"><small>BDT</small></sup></h1>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-success w-100">Confirm</button>
+                                                <c:choose>
+                                                    <c:when test="${balance >= user.salary}">
+                                                        <button type="button" class="btn btn-success btn-block"
+                                                                id="rechargeMoneyBtn${ user.id }">Confirm
+                                                        </button>
+                                                        <a id="insufficientAlert${ user.id }" href="/settings/bank"
+                                                           class="btn btn-danger btn-block d-none">
+                                                            Insufficient Balance (Please recharge)
+                                                        </a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <a href="/settings/bank" class="btn btn-danger btn-block">
+                                                            Insufficient Balance (Please recharge)
+                                                        </a>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -127,6 +144,84 @@
 
 </div>
 <!-- /.container-fluid -->
+
+<script>
+
+let id, username, amount
+
+function setValue (id, username, amount) {
+  this.id = id
+  this.username = username
+  this.amount = amount
+  // log selected user info
+  // console.log(id + username + amount)
+
+  if ($('#currentBalance').text() < amount) {
+
+    $('#rechargeMoneyBtn' + id).addClass('d-none')
+    $('#insufficientAlert' + id).removeClass('d-none')
+
+  } else {
+
+    $('#rechargeMoneyBtn' + id).removeClass('d-none')
+    $('#insufficientAlert' + id).addClass('d-none')
+
+    $('#rechargeMoneyBtn' + id).on('click', function () {
+      rechargeMoney(id, username, amount)
+    });
+
+  }
+}
+
+function rechargeMoney (id, username, amount) {
+  $.post("/api/v1/pay-employee", {
+    username: username,
+    amount: amount,
+  }, function (data, status) {
+    console.log(data);
+    if (data.msg == 'success') {
+//    hide the modal
+      setTimeout(function () {
+        $('#payModalCenter' + id).click()
+        $('#payModalCenter' + id).click()
+      }, 200);
+
+      showAlertSuccess(username, amount, data.currentBalance)
+    } else {
+      showAlertFailed(id, amount, data.currentBalance)
+    }
+  });
+}
+
+function showAlertSuccess (username, amount, currentBalance) {
+  $('#alert').show()
+  $('#alert').text("Paid salary: " + amount + " successful to: " + username)
+  $('#currentBalance').removeClass('text-success')
+  $('#currentBalance').addClass('text-danger')
+  $('#currentBalance').text(currentBalance)
+
+  setTimeout(function () {
+    $('#alert').hide()
+    $('#currentBalance').removeClass('text-danger')
+    $('#currentBalance').addClass('text-success')
+  }, 4000)
+}
+
+function showAlertFailed (id, amount, currentBalance) {
+  if (amount > currentBalance) {
+    $('#rechargeMoneyBtn' + id).addClass('d-none')
+    $('#insufficientAlert' + id).removeClass('d-none')
+  } else {
+    $('#rechargeMoneyBtn' + id).removeClass('d-none')
+    $('#insufficientAlert' + id).addClass('d-none')
+  }
+
+  setTimeout(function () {
+    $('#payModalCenter' + id).click()
+    $('#payModalCenter' + id).click()
+  }, 200);
+}
+</script>
 
 <!-- FOOTER -->
 <jsp:include page="../common/footer.jsp"/>

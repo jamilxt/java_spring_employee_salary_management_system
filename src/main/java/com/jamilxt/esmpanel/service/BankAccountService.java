@@ -40,9 +40,7 @@ public class BankAccountService {
     }
 
     public String paySalaryToAUser(User user, Long amount) {
-        if (getBankBalanceByUsername("admin") < amount) {
-            return "Please recharge your account";
-        } else {
+        if (getBankBalanceByUsername("admin") >= amount) {
             var newBankDetails = bankAccountRepository.findByUserUsername(user.getUsername());
             // add new amount
             newBankDetails.setCurrentBalance(newBankDetails.getCurrentBalance() + amount);
@@ -55,7 +53,9 @@ public class BankAccountService {
             salarySheet.setAmount(amount);
 
             salarySheetService.insertEntry(salarySheet);
-            return "Salary has been paid successful!";
+            return "success";
+        } else {
+            return "failed";
         }
     }
 
